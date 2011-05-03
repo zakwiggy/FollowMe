@@ -1,7 +1,7 @@
 #--------------------------------------------------------------------
 # MCU name
-MCU = atmega644p
-F_CPU = 20000000
+MCU = atmega2561
+F_CPU = 8000000
 #-------------------------------------------------------------------
 VERSION_MAJOR    =  0
 VERSION_MINOR    =  1
@@ -76,7 +76,7 @@ OPT = 2
 
 ##########################################################################################################
 # List C source files here. (C dependencies are automatically generated.)
-SRC = main.c uart0.c uart1.c printf_P.c timer0.c  menu.c led.c ubx.c analog.c button.c crc16.c ssc.c sdc.c fat16.c gps.c settings.c logging.c kml.c gpx.c
+SRC = main.c uart0.c uart1.c printf_P.c timer0.c  menu.c led.c ubx.c analog.c button.c crc16.c ssc.c sdc.c fat16.c gps.c settings.c logging.c kml.c gpx.c fifo.c
 ##########################################################################################################
 
 

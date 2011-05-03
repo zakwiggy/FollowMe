@@ -3,7 +3,7 @@
 #include "timer0.h"
 #include "uart0.h"
 #include "printf_P.h"
-
+#include "uart1.h"
 
 // ------------------------------------------------------------------------------------------------
 // defines
@@ -221,9 +221,8 @@ void UBX_Init(void)
 /********************************************************/
 /*            Upate GPS data stcructure                 */
 /********************************************************/
-void Update_GPSData (void)
+static uint16_t Ubx_Timeout = 0;void Update_GPSData (void)
 {
-	static uint16_t Ubx_Timeout = 0;
 	static uint8_t  Msg_Count = 0;
 
 	// the timeout is used to detect the delay between two message sets
@@ -241,7 +240,7 @@ void Update_GPSData (void)
 	if((Msg_Count >= 2))
 	{	// if set is complete
 		if((UbxSol.Status == NEWDATA) && (UbxPosLlh.Status == NEWDATA) && (UbxVelNed.Status == NEWDATA))
-		{
+		{//UDR0='0';
 			CheckGPSOkay++;
 			// update GPS data only if the status is INVALID or PROCESSED  and the last ubx message was received within less than 100 ms
 			if(GPSData.Status != NEWDATA) // if last data were processed
@@ -256,6 +255,8 @@ void Update_GPSData (void)
 				SetGPSTime(&SystemTime); // update system time
 				// NAV POSLLH
 				GPSData.Position.Status = 		INVALID;
+				
+				//printf("%d\n",((char *)&UbxPosLlh.LON)[0]);
 				GPSData.Position.Longitude =  	UbxPosLlh.LON;
 				GPSData.Position.Latitude =  	UbxPosLlh.LAT;
 				GPSData.Position.Altitude =  	UbxPosLlh.HMSL;
@@ -281,14 +282,15 @@ void Update_GPSData (void)
 /********************************************************/
 /*                   UBX Parser                         */
 /********************************************************/
-void UBX_Parser(uint8_t c)
-{
+void UBX_Parser()
+{static int i=0;
 	static ubxState_t ubxState = UBXSTATE_IDLE;
 	static uint16_t msglen;
 	static uint8_t cka, ckb;
 	static uint8_t *ubxP, *ubxEp, *ubxSp; // pointers to data currently transfered
+	unsigned char c;
 
-
+	while(fifo_get(&rxFifo, &c)){//printf("%d %d\n",rxFifo.pread,rxFifo.pwrite);
 	//state machine
 	switch (ubxState)	// ubx message parser
 	{
@@ -308,6 +310,7 @@ void UBX_Parser(uint8_t c)
 			break;
 
 		case UBXSTATE_CLASS: // check message identifier
+						
 			switch(c)
 			{
 				case UBX_ID_POSLLH: // geodetic position
@@ -328,7 +331,7 @@ void UBX_Parser(uint8_t c)
 					ubxSp = (uint8_t *)&UbxVelNed.Status; // status pointer
 					break;
 
-				default:			// unsupported identifier
+				default://printf("%d\n",UbxPosLlh.LON);			// unsupported identifier
 					ubxState = UBXSTATE_IDLE;
 					break;
 			}
@@ -348,26 +351,23 @@ void UBX_Parser(uint8_t c)
 			break;
 
 		case UBXSTATE_LEN2: // 2nd message length byte
+		
 			msglen += ((uint16_t)c)<<8; // high byte last
 			cka += c;
 			ckb += cka;
 			// if the old data are not processed so far then break parsing now
 			// to avoid writing new data in ISR during reading by another function
-			if ( *ubxSp == NEWDATA )
-			{
-				ubxState = UBXSTATE_IDLE;
-				Update_GPSData(); //update GPS info respectively
-			}
-			else // data invalid or allready processd
-			{
+
 				*ubxSp = INVALID; // mark invalid during buffer filling
 				ubxState = UBXSTATE_DATA;
-			}
+
 			break;
 
 		case UBXSTATE_DATA: // collecting data
+	//printf("%d %d\n",msglen,c);
 			if (ubxP < ubxEp)
-			{
+			{//if (ubxP ==  (uint8_t *)&UbxPosLlh)
+				//printf("%d %d\n",msglen,c);
 				*ubxP++ = c; // copy curent data byte if any space is left
 				cka += c;
 				ckb += cka;
@@ -380,6 +380,7 @@ void UBX_Parser(uint8_t c)
 			break;
 
 		case UBXSTATE_CKA:
+			
 			if (c == cka) ubxState = UBXSTATE_CKB;
 			else
 			{
@@ -405,5 +406,5 @@ void UBX_Parser(uint8_t c)
 			ubxState = UBXSTATE_IDLE;
 			break;
 
-	}
+	}}
 }

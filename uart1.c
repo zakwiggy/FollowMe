@@ -6,13 +6,15 @@
 #include "printf_P.h"
 #include "ubx.h"
 
-
+fifo_t rxFifo;
+unsigned char rxBuffer1[1000];
 /****************************************************************/
 /*              Initialization of the USART1                    */
 /****************************************************************/
 void USART1_Init (void)
 {
 	printf("\r\n UART1 init...");
+	fifo_init (&rxFifo, rxBuffer1,999);
 	// USART1 Control and Status Register A, B, C and baud rate register
 	uint8_t sreg = SREG;
 	uint16_t ubrr = (uint16_t) ((uint32_t) SYSCLK/(8 * USART1_BAUD) - 1);
@@ -88,10 +90,8 @@ void USART1_Init (void)
 /*               USART1 receiver ISR                            */
 /****************************************************************/
 ISR(USART1_RX_vect)
-{
-	uint8_t c;
-	c = UDR1; // get data byte
-
-	UBX_Parser(c); // and put it into the ubx protocol parser
+{fifo_put(&rxFifo,UDR1);
+	
+	 // and put it into the ubx protocol parser
 
 }

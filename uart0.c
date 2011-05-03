@@ -519,7 +519,7 @@ void USART0_TransmitTxData(void)
 		}
 		else // old format
 		{
-			LCD_printfxy(0,0,"!!! INCOMPATIBLE !!!");
+			//LCD_printfxy(0,0,"!!! INCOMPATIBLE !!!");
 			SendOutData('H', FC_ADDRESS, 2, &DisplayLine, sizeof(DisplayLine), (uint8_t *)DisplayBuff, 20);
 			if(DisplayLine++ > 3) DisplayLine = 0;
 		}

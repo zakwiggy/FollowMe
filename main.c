@@ -2,7 +2,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-
+#include "ubx.h"
 #include "main.h"
 #include "timer0.h"
 #include "uart0.h"
@@ -83,7 +83,7 @@ int main (void)
 	FollowMe_Timer = SetDelay(FOLLOWME_INTERVAL);
 
 	while (1)
-	{
+	{UBX_Parser();
 		// get gps data to update the follow me position
 		GPS_Update();
 
@@ -122,7 +122,7 @@ int main (void)
 					if(FollowMe.Position.Status == NEWDATA)        // if new
 					{   // update remaining data
 						FollowMe_Timer = SetDelay(FOLLOWME_INTERVAL);  // reset timer
-						FollowMe.Heading = -1;			// invalid heading
+						FollowMe.Heading = 0;			// invalid heading
 						FollowMe.ToleranceRadius = 1;   // 1 meter
 						FollowMe.HoldTime = 60;         // go home after 60s without any update
 						FollowMe.Event_Flag = 0;        // no event

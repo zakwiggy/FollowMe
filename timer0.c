@@ -34,7 +34,7 @@ void TIMER0_Init(void)
 	// Timer/Counter 0 Control Register A
 
 	// Waveform Generation None (Bits WGM02 = 0, WGM01 = 0, WGM00 = 0)
-    TCCR0A &= ~((1<<COM0A0)|(1<<COM0B0)|(1<<COM0A1)|(1<<COM0B1)|(1<<WGM01)|(1<<WGM00));
+    TCCR0A=0x02;
 
 	// Timer/Counter 0 Control Register B
 
@@ -43,16 +43,14 @@ void TIMER0_Init(void)
 	// hence the timer overflow interrupt frequency is 2.5 MHz / 256 = 9.765 kHz
 
 	// divider 8 (Bits CS02 = 0, CS01 = 1, CS00 = 0)
-	TCCR0B &= ~((1<<FOC0A)|(1<<FOC0B)|(1<<WGM02));
-    TCCR0B = (TCCR0B & 0xF8)|(0<<CS02)|(1<<CS01)|(0<<CS00);
-
+	TCCR0B = 0x02;
+	OCR0A=100;
 	// init Timer/Counter 0 Register
     TCNT0 = 0;
 
 	// Timer/Counter 0 Interrupt Mask Register
 	// enable timer overflow interrupt only
-	TIMSK0 &= ~((1<<OCIE0B)|(1<<OCIE0A));
-	TIMSK0 |= (1<<TOIE0);
+	TIMSK0 =0x02;
 
 
 	SystemTime.Year = 0;
@@ -75,8 +73,15 @@ void TIMER0_Init(void)
 /*****************************************************/
 /*          Interrupt Routine of Timer 0             */
 /*****************************************************/
-ISR(TIMER0_OVF_vect)    // 9.765 kHz
-{
+ISR(TIMER0_COMPA_vect)    // 9.765 kHz
+{/*static int mine=0;
+//UDR0='1';
+mine++;
+if(mine>10000)
+{mine =0;
+UDR0='0';
+
+}*/
     static uint8_t cnt = 0;
     #ifdef USE_FOLLOWME
     uint8_t Beeper_On = 0;

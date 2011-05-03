@@ -1,8 +1,8 @@
 #ifndef _UART1_H
 #define _UART1_H
 
-#define USART1_BAUD 57600
-
+#define USART1_BAUD 38400
+#include "fifo.h"
 /*
 Initialize the USART und activate the receiver and transmitter
 as well as the receive-interrupt. The IO-FIFOs are initialized.
@@ -16,7 +16,8 @@ the output buffer then the return value is 1. In case of an output buffer overfl
 The isr is activated, which will send the data from the outbut buffer to the UART.
 */
 extern int USART1_putc (const uint8_t c);
-
+extern fifo_t rxFifo;
+extern unsigned char rxBuffer[1000];
 /*
 extern uint8_t USART1_getc_wait(void);
 extern int16_t USART1_getc_nowait(void);

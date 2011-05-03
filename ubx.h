@@ -52,6 +52,6 @@ extern gps_data_t  GPSData;
 extern uint16_t CheckGPSOkay;
 
 void UBX_Init(void);
-void UBX_Parser(uint8_t c);
+void UBX_Parser(void);
 
 #endif // _UBX_H
